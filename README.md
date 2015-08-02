@@ -1,10 +1,13 @@
 # numberConvertor
-This is number to word converter application. It is implemented with Java and currently supports only bulgarian language.
-It was implemented due to a requirement in one project for currencies to words convertion when generating invoice payments.
+This is number to word converter application. 
+It is implemented with Java and currently supports only bulgarian language.
+It was implemented due to a requirement in one project I was working.
+We needed currencies to words convertion library.
+I could not find an open source code so I decided to implement one and share it.
 My intention in the future is to add more languages.
 
 The repository contains an eclipse project with very few files. When compiled the application could be used
-via calling NWConverter.java. Here are some examples:
+via calling NWConverter.java. Here are two examples:
 
 Calling:
 
@@ -14,6 +17,11 @@ System.out.println(NWConverter.convertCurrency("34.98", NWConverter.Language.BUL
 will print:
 
 тридесет и четири цяло и деветдесет и осем
+
 тридесет и четири лева и деветдесет и осем стотинки
 
+---------
 
+As it is seen it supports numbers and currencies. 
+In the features it could be extended with adding support for more currencies, not just levas,
+and of course more languages.
