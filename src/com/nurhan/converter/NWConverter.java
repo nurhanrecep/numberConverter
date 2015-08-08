@@ -24,7 +24,7 @@ public class NWConverter {
 		String convertedNumber = null;
 		
 		if(lang.equals(Language.BULGARIAN)) {
-			convertedNumber = BulgarianConverter.convert(number, false);
+			convertedNumber = new BulgarianConverter().convert(number, false);
 		}
 		
 		return convertedNumber;
@@ -43,7 +43,7 @@ public class NWConverter {
 		String convertedNumber = null;
 		
 		if(lang.equals(Language.BULGARIAN)) {
-			convertedNumber = BulgarianConverter.convert(number, true);
+			convertedNumber = new BulgarianConverter().convert(number, true);
 		}
 		
 		return convertedNumber;

@@ -15,8 +15,8 @@ public class ConverterNumber {
 
 	/**
 	 * the part before the decimal point, without the minus sign (if there is
-	 * such). for example, for 34.55 the value of integerPart will be 34. the 0
-	 * values are represented as empty string
+	 * such). for example, for 34.55 the value of integerPart will be 34. 
+	 * The 0 values are represented as empty string
 	 */
 	private String integerPart;
 

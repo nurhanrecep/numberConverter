@@ -3,7 +3,6 @@ package com.nurhan.converter;
 import java.util.ArrayList;
 
 import com.nurhan.converter.bean.ConverterNumber;
-import com.nurhan.converter.util.ConverterUtil;
 
 /**
  * Number converter for bulgarian numbers.
@@ -11,73 +10,84 @@ import com.nurhan.converter.util.ConverterUtil;
  * @author Nurhan R. Mustafa
  * @version 1.1
  */
-class BulgarianConverter {
+class BulgarianConverter implements Converter {
 	/** minus word */
-	private static final String MINUS = "минус "; 
+	private final String MINUS = "минус "; 
 	
 	/** currency and currency sub unit's words*/
-	private static final String CURRENCY = " лев";
-	private static final String CURRENCY_PLURAL = " лева";	
-	private static final String CURRENCY_SUB_UNIT = " стотинка";
-	private static final String CURRENCY_SUB_UNIT_PLURAL = " стотинки";
+	private final String CURRENCY = " лев";
+	private final String CURRENCY_PLURAL = " лева";	
+	private final String CURRENCY_SUB_UNIT = " стотинка";
+	private final String CURRENCY_SUB_UNIT_PLURAL = " стотинки";
 	
 	/** letter added to the end of some words to make it plural */
-	private static final String PLURAL_SUFFIX = "а";
+	private final String PLURAL_SUFFIX = "а";
 	
 	/** letter used for 'and' word in bulgarian */
-	private static final String AND = "и";
+	private final String AND = "и";
 	
 	/** a word used when spelling the floating numbers as a conjunction between the integer and fraction number */
-	private static final String DOT_WORD = " цяло ";
+	private final String DOT_WORD = " цяло ";
 	
 	/** suffix word added after TEN word related to numbers between 11 and 19 including */
-	private static final String DECIMAL_CONECTIVE = "на";
+	private final String DECIMAL_CONECTIVE = "на";
 	
-	private static final String HUNDRED = "сто";
+	/** word for hundred */
+	private final String HUNDRED = "сто";
 	
 	/** a suffix for 200 and 300 words */
-	private static final String NUNDRED_TWO_THREE_SUFFIX = "ста";
+	private final String TWO_AND_THREE_NUNDRED_SUFFIX = "ста";
 	
 	/** a suffix for 400, 500, 600, 700, 800 and 900 words */
-	private static final String NUNDRED_FOUR_TO_NIGN_SUFFIX = "стотин";
+	private final String FOUR_TO_NIGN_NUNDRED_SUFFIX = "стотин";
 
-	private static final String THOUSANDS = "хиляди";
+	/** word for hundreds */
+	private final String THOUSANDS = "хиляди";
 	
 	/** number exponent's words as 1 , 1 000, 1 000 000, 1 000 000 000, ... */
-	private static final String[] TRIPLE_EXPONENT = {"един","хиляда", "милион", "милиард", "трилион", "квадрилион", "квинтилион", "секстилион"};
+	private final String[] TRIPLE_EXPONENT = {"един","хиляда", "милион", "милиард", "трилион", "квадрилион", "квинтилион", "секстилион"};
 	
 	/** number's spellings from 1 to 10 for number's fraction part */
-	private static final String[] CURRENCY_FRACTION_NUMBERS = {"", "една", "две", "три", "четири", "пет", "шест", "седем", "осем", "девет", "десет" };
+	private final String[] CURRENCY_FRACTION_NUMBERS = {"", "една", "две", "три", "четири", "пет", "шест", "седем", "осем", "девет", "десет" };
 	
-	/** number's words for simple numbers and currency respectively */
-	private static final String[][] NUMBERS_WORDS = new String[][] {
+	/** number's words for simple numbers and currency respectively 
+	 * the first group(at index 0) is for numbers, the second group is for currencies */
+	private final String[][] NUMBERS = new String[][] {
 			{ "нула", "едно", "две", "три", "четири", "пет", "шест", "седем", "осем", "девет", "десет" },
 			{ "", "един", "два", "три", "четири", "пет", "шест", "седем", "осем", "девет", "десет" } };
 	
-	/**  used with NUMBERS_WORDS, for currency is 1, for numbers 0, usage is like NUMBERS_WORDS[wordsGroup][0] */
-	private static int wordsGroup = 0; 
+	/** used with NUMBERS, for currency is 1, for numbers 0, usage is like NUMBERS[wordsGroup][0] */
+	private int wordsGroup = 0; 
 	
 	/** constants representing the number type in NUMBERS_WORDS array, the 'wordsGroup' is set to one of them */
-	private static final int CURRENCY_WORDS_GROUP = 1;
-	private static final int NUMBERS_WORDS_GROUP = 0;
+	private final int CURRENCY_WORDS = 1;
+	private final int NUMBERS_WORDS = 0;
 	
 	public enum NumberPart { INTEGER, FRACTION } // number parts
 	
-	private static ConverterNumber convertedNumber = null;
-			
-	public static synchronized String convert(String number, boolean forCurrency) throws Exception {		
-
-		ConverterUtil.validateNumber(number, forCurrency);
+	/** represents the converted number */
+	private ConverterNumber convertedNumber = null;
+	
+	/**
+	 * Converts the number/currency.
+	 * 
+	 * @param number to number to be converted
+	 * @param forCurrency  true if the number represents a currency
+	 * @return word representation of the number/currency
+	 * @throws Exception
+	 */
+	public String convert(String number, boolean forCurrency) throws Exception {	
 		
 		/** number represented as instance */
 		convertedNumber = new ConverterNumber(number, forCurrency);
 		
 		/** determining which word group to use, currency or simple number's */
-		wordsGroup = forCurrency ? CURRENCY_WORDS_GROUP : NUMBERS_WORDS_GROUP; 
+		wordsGroup = forCurrency ? CURRENCY_WORDS : NUMBERS_WORDS; 
 		
 		/** if is negative append the minus word */
 		convertedNumber.appendWord(convertedNumber.isNegativeNumber() ? MINUS: ""); // append sign word
 		
+		/** the number could have two parts, the integer and the fraction, first we start with the integer part*/
 		appendIntegerPartWord();
 	
 		/** set the word between integer and fraction parts used as conjunction when spelling the number */
@@ -104,13 +114,16 @@ class BulgarianConverter {
 		return convertedNumber.getNumberInWordRepresentation();
 	}
 	
-	private static void appendIntegerPartWord() {
-		if (!convertedNumber.isCurrency()) {
-			if (convertedNumber.getIntegerPart().equals("")) {
-				convertedNumber.appendWord(NUMBERS_WORDS[wordsGroup][0]); // append ZERO
+	/**
+	 * The number could have two parts, the integer and the fraction, the the integer part
+	 */
+	private void appendIntegerPartWord() {
+		if (!convertedNumber.isCurrency()) { // it is not a currency
+			if (convertedNumber.getIntegerPart().equals("")) { // the number starts with 0 so add ZERO word
+				convertedNumber.appendWord(NUMBERS[NUMBERS_WORDS][0]); // there is no number to convert: append ZERO word and return
 				return;
-			} else if (convertedNumber.getIntegerPart().equals("0")) {
-				convertedNumber.appendWord(NUMBERS_WORDS[NUMBERS_WORDS_GROUP][0]); // append ZERO
+			} else if (convertedNumber.getIntegerPart().equals("0")) { // the number starts with 0 so add ZERO word
+				convertedNumber.appendWord(NUMBERS[NUMBERS_WORDS][0]); // append ZERO word and continue
 			}
 		}
 		
@@ -120,11 +133,11 @@ class BulgarianConverter {
 	/**
 	 * Converts the number to words.
 	 * 
-	 * @param number a number to be translated
+	 * @param number a number to be converted
 	 * @param numberPart the part of the number: integer or fraction
 	 * @return the given number in words form
 	 */
-	private static void convertNumberToWord(String number, NumberPart numberPart) {
+	private void convertNumberToWord(String number, NumberPart numberPart) {
 		/** the number is separated to triples */
 		ArrayList<String> tripples = getNumberAsTriples(number);
 		int tripplesArraySize = tripples.size();
@@ -154,7 +167,7 @@ class BulgarianConverter {
 				if (tripleIndex > 0 && tripples.get(tripleIndex).length() > 1 && 
 					tripples.get(tripleIndex).endsWith("1") && convertedNumber.isCurrency()) {
 					// the word ends with 1 and is for currency, so the word 'one' is replaced with it's famine spelling
-					aTripleAsWords = aTripleAsWords.replaceAll(NUMBERS_WORDS[1][1], CURRENCY_FRACTION_NUMBERS[1]);
+					aTripleAsWords = aTripleAsWords.replaceAll(NUMBERS[1][1], CURRENCY_FRACTION_NUMBERS[1]);
 					convertedNumber.appendWord(aTripleAsWords);				
 					convertedNumber.appendWord(" ");	
 				} else if(!(tripleIndex == 1 && aTripleAsDecimal == 2)) {
@@ -163,7 +176,7 @@ class BulgarianConverter {
 								
 				if(tripleIndex == 1) { // is thousands
 					if(aTripleAsDecimal == 2) {
-						convertedNumber.appendWord(NUMBERS_WORDS[1][2]);
+						convertedNumber.appendWord(NUMBERS[1][2]);
 						convertedNumber.appendWord(" ");	
 					} else {
 						convertedNumber.appendWord(" ");	
@@ -190,7 +203,7 @@ class BulgarianConverter {
 	 * @param trippleArrayIndex
 	 * @param numberAsTriples
 	 */
-	private static void addANDLetter(int trippleArrayIndex, ArrayList<String> numberAsTriples) {
+	private void addANDLetter(int trippleArrayIndex, ArrayList<String> numberAsTriples) {
 		if((trippleArrayIndex - 1) < 0) {
 			// this is last triple, so there is not need for AND word
 			return;
@@ -213,7 +226,10 @@ class BulgarianConverter {
 		}
 	}
 	
-	private static void appendFractionPartWord() {
+	/**
+	 * Appends the fraction part of the number.
+	 */
+	private void appendFractionPartWord() {
 		if(!convertedNumber.getFractionalPart().equals("")) {			
 			convertNumberToWord(convertedNumber.getFractionalPart(), NumberPart.FRACTION);	
 		}			
@@ -225,7 +241,7 @@ class BulgarianConverter {
 	 * @param number a number to be translated
 	 * @return a number as word(s)
 	 */
-	private static String getTripleAsWord(String number, NumberPart numberPart) {
+	private String getTripleAsWord(String number, NumberPart numberPart) {
 		int numberLength = number.length();
 		String translatedTriple = "";
 	
@@ -240,40 +256,61 @@ class BulgarianConverter {
 		return translatedTriple;
 	}
 	
-	private static String parseOneDigitTriple(String number, NumberPart numberPart) { 
+	/**
+	 * Parses a triple when it has only one digit number.
+	 * 
+	 * @param number
+	 * @param numberPart
+	 * @return
+	 */
+	private String parseOneDigitTriple(String number, NumberPart numberPart) { 
 		
 		if(convertedNumber.isCurrency() && numberPart == NumberPart.FRACTION) {
 			return CURRENCY_FRACTION_NUMBERS[Integer.parseInt(number)];
 		} 
 		
-		return NUMBERS_WORDS[wordsGroup][Integer.parseInt(number)];	
+		return NUMBERS[wordsGroup][Integer.parseInt(number)];	
 	}
 	
-	private static String parseTwoDigitTriple(String number, NumberPart numberPart) {
+	/**
+	 * Parses a triple when it is represented by two digit number.
+	 *  
+	 * @param number
+	 * @param numberPart
+	 * @return
+	 */
+	private String parseTwoDigitTriple(String number, NumberPart numberPart) {
 		int numberAsDecimal = Integer.parseInt(number);
 		String decimalAsWord = "";
 		
 		if(numberAsDecimal < 11) { // cases as: 00, 01, 10, 09, ... etc.
 			decimalAsWord = parseOneDigitTriple(number, numberPart);
 		} else if(numberAsDecimal == 11) {
-			decimalAsWord = NUMBERS_WORDS[1][numberAsDecimal-10] + PLURAL_SUFFIX +  NUMBERS_WORDS[1][10];	
+			decimalAsWord = NUMBERS[1][numberAsDecimal-10] + PLURAL_SUFFIX +  NUMBERS[1][10];	
 		} else if(numberAsDecimal < 20) {
-			decimalAsWord = NUMBERS_WORDS[1][numberAsDecimal-10] + DECIMAL_CONECTIVE +  NUMBERS_WORDS[1][10];	
+			decimalAsWord = NUMBERS[1][numberAsDecimal-10] + DECIMAL_CONECTIVE +  NUMBERS[1][10];	
 		} else {
 			int firstDigit = Integer.parseInt(number.substring(0,1));
 			int secondDigit = Integer.parseInt(number.substring(1,2));
 			
 			if(secondDigit == 0) {
-				decimalAsWord = NUMBERS_WORDS[1][firstDigit] + NUMBERS_WORDS[1][10];
+				decimalAsWord = NUMBERS[1][firstDigit] + NUMBERS[1][10];
 			} else {
-				decimalAsWord = NUMBERS_WORDS[1][firstDigit] + NUMBERS_WORDS[1][10] + " " + AND + " " + parseOneDigitTriple(number.substring(1,2), numberPart);
+				decimalAsWord = NUMBERS[1][firstDigit] + NUMBERS[1][10] + " " + AND + " " + parseOneDigitTriple(number.substring(1,2), numberPart);
 			}	
 		}
 		
 		return decimalAsWord;
 	}
 	
-	private static String parseThreeDigitTriple(String number, NumberPart numberPart) {
+	/**
+	 *  Parses a triple.
+	 *  
+	 * @param number
+	 * @param numberPart
+	 * @return
+	 */
+	private String parseThreeDigitTriple(String number, NumberPart numberPart) {
 		int numberAsDecimal = Integer.parseInt(number);
 		String decimalAsWord = "";
 		
@@ -295,9 +332,9 @@ class BulgarianConverter {
 			int firsDigit = Integer.parseInt(number.substring(0, 1));
 			
 			if (numberAsDecimal < 400) {
-				decimalAsWord =  NUMBERS_WORDS[0][firsDigit] + NUNDRED_TWO_THREE_SUFFIX ; // for 200 and 300
+				decimalAsWord =  NUMBERS[0][firsDigit] + TWO_AND_THREE_NUNDRED_SUFFIX ; // for 200 and 300
 			} else {
-				decimalAsWord =  NUMBERS_WORDS[0][firsDigit] + NUNDRED_FOUR_TO_NIGN_SUFFIX  ;
+				decimalAsWord =  NUMBERS[0][firsDigit] + FOUR_TO_NIGN_NUNDRED_SUFFIX  ;
 			}	
 						
 			if(!number.substring(1,3).equals("00")) {
@@ -316,15 +353,25 @@ class BulgarianConverter {
 		return decimalAsWord;
 	}
 	
-	private static String getCurrencySubUnitWord() {		
-		if(Integer.parseInt(convertedNumber.getFractionalPart()) == 1) {
+	/**
+	 * Returns currency sub unit word.
+	 * 
+	 * @return
+	 */
+	private String getCurrencySubUnitWord() {		
+		if(Integer.parseInt(convertedNumber.getFractionalPart()) == 1) { // if the fraction part is 1, use sub unit word for one
 			return CURRENCY_SUB_UNIT;
 		} else {
 			return CURRENCY_SUB_UNIT_PLURAL;
 		}
 	}
 
-	private static String getCurrencyWord() {			
+	/**
+	 * Get currency word for bulgarian.
+	 * 
+	 * @return
+	 */
+	private String getCurrencyWord() {			
 		if(convertedNumber.getIntegerPart().equals("") || convertedNumber.getIntegerPart().equals("0")) {
 			return ""; // write nothing for zero
 		} else if(convertedNumber.getIntegerPart().equals("1")) { 
@@ -341,7 +388,7 @@ class BulgarianConverter {
 	 * @param number the number to be divided
 	 * @return the number divided in groups of triples
 	 */
-	private static ArrayList<String> getNumberAsTriples(String number) {
+	private ArrayList<String> getNumberAsTriples(String number) {
 		ArrayList<String> numberAsTriples = new ArrayList<String>();
 		
 		int numberBeginIndex = (number.length() - 3) < 0 ? 0: (number.length() - 3);
