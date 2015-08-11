@@ -1,4 +1,4 @@
-# numberConvertor
+# numberConverter
 
 This is number / currency to words converter. 
 
