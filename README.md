@@ -31,9 +31,7 @@ will print:
 
 As it is seen it supports numbers and currencies. 
 
-In the features it could be extended with adding support for more currencies, not just levas,
-
-and of course more languages.
+In future it could be extended with adding support for more currencies.
 
 
 -----------------------------------------------------------------------------------------------------------------
